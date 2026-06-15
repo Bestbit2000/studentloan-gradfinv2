@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradFin - Student Loan Co-Pilot</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom animations ported from tailwind-animate */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideInFromBottom { from { transform: translateY(1rem); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        @keyframes zoomIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slide-in { animation: slideInFromBottom 0.5s ease-out forwards; }
+        .animate-zoom-in { animation: zoomIn 0.3s ease-out forwards; }
+        
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f8fafc; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 h-screen overflow-hidden flex">
+
+    <!-- DESKTOP SIDEBAR -->
+    <div id="sidebar" class="hidden md:flex w-64 bg-slate-900 text-slate-300 flex-col h-full z-30 shrink-0">
+        <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-white flex items-center gap-2">
+                    <i data-lucide="wallet" class="text-emerald-400"></i> GradFin
+                </h1>
+                <p class="text-xs text-slate-400 mt-1">Your Student Loan Co-Pilot</p>
+            </div>
+        </div>
+
+        <nav class="flex-1 py-6" id="nav-menu">
+            <button data-target="dashboard" class="desktop-nav-btn w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors border-l-4 bg-slate-800 text-white border-emerald-400">
+                <i data-lucide="wallet" class="w-5 h-5"></i> Overview
+            </button>
+            <button data-target="simulator" class="desktop-nav-btn w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors border-l-4 border-transparent hover:bg-slate-800 hover:text-white">
+                <i data-lucide="calculator" class="w-5 h-5"></i> Raise Simulator
+            </button>
+            <button data-target="payoff" class="desktop-nav-btn w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors border-l-4 border-transparent hover:bg-slate-800 hover:text-white">
+                <i data-lucide="trending-up" class="w-5 h-5"></i> Payoff Engine
+            </button>
+            <button data-target="priority" class="desktop-nav-btn w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors border-l-4 border-transparent hover:bg-slate-800 hover:text-white">
+                <i data-lucide="shield-check" class="w-5 h-5"></i> Action Plan
+            </button>
+        </nav>
+
+        <!-- Global Settings Summary -->
+        <div class="p-4 bg-slate-800 m-4 rounded-xl shadow-inner">
+            <p class="text-xs font-semibold text-slate-400 uppercase mb-2">My Profile</p>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span>Salary:</span>
+                    <span class="text-white font-medium" id="sidebar-salary">£32,000</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Balance:</span>
+                    <span class="text-white font-medium" id="sidebar-balance">£45,000</span>
+                </div>
+                <div class="flex justify-between">
+                    <span>Plan:</span>
+                    <span class="text-white font-medium" id="sidebar-plan">Plan 2</span>
+                </div>
+            </div>
+            <button onclick="updateProfile()" class="mt-4 w-full text-xs bg-slate-700 hover:bg-slate-600 text-white py-2 rounded-lg transition-colors">
+                Update Profile
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- MOBILE HEADER -->
+        <div class="md:hidden shrink-0 flex items-center justify-between p-4 bg-slate-900 text-white z-20 shadow-md">
+            <h1 class="text-xl font-bold flex items-center gap-2">
+                <i data-lucide="wallet" class="text-emerald-400 w-6 h-6"></i> GradFin
+            </h1>
+            <button onclick="updateProfile()" class="text-xs bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg font-medium transition-colors">
+                Update Profile
+            </button>
+        </div>
+
+        <!-- SCROLLABLE CONTENT AREA -->
+        <div class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8 w-full">
+            <div class="max-w-4xl mx-auto">
+                
+                <!-- 1. DASHBOARD TAB -->
+        <div class="max-w-4xl mx-auto">
+            
+            <!-- 1. DASHBOARD TAB -->
+            <div id="tab-dashboard" class="tab-content animate-slide-in block space-y-6">
+                <header>
+                    <h2 class="text-3xl font-bold text-slate-800">Your Financial Reality</h2>
+                    <p class="text-slate-500">Reframing the debt to reduce anxiety and focus on cash flow.</p>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- The Reframe Card -->
+                    <div class="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-lg font-semibold flex items-center gap-2">
+                                    <i data-lucide="alert-circle" class="w-5 h-5 text-emerald-500"></i>
+                                    The "Ghost Balance"
+                                </h3>
+                                <p class="text-sm text-slate-500">Ignore the total. Focus on the monthly.</p>
+                            </div>
+                            <div class="text-right opacity-40">
+                                <p class="text-xs font-bold uppercase tracking-wider">Total Balance</p>
+                                <p class="text-2xl line-through decoration-red-400/50" id="dash-total-balance">£45,000</p>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                            <p class="text-sm text-slate-600 mb-2">Your actual monthly impact is:</p>
+                            <div class="flex items-end gap-2">
+                                <span class="text-4xl font-bold text-slate-800" id="dash-monthly-payment">£0</span>
+                                <span class="text-slate-500 pb-1">/ month</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-3">
+                                This is essentially an income tax of <span id="dash-plan-rate">9%</span> on earnings above <span id="dash-threshold">£27,295</span>. 
+                                It does not behave like a standard bank loan.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Forgiveness Countdown -->
+                    <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-6 rounded-2xl shadow-sm">
+                        <h3 class="text-lg font-semibold mb-1">Forgiveness Timeline</h3>
+                        <p class="text-indigo-100 text-sm mb-6">Time until the remaining balance is completely wiped out by the government.</p>
+                        
+                        <div class="text-5xl font-bold mb-2" id="dash-years-left">27</div>
+                        <p class="text-indigo-200 text-sm">Years remaining</p>
+
+                        <div class="mt-6 w-full bg-black/20 rounded-full h-2">
+                            <div id="dash-progress-bar" class="bg-white h-2 rounded-full" style="width: 10%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Disposable Income Breakdown -->
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                    <h3 class="text-lg font-semibold mb-4">Monthly Cash Flow Breakdown</h3>
+                    <div class="flex flex-col md:flex-row gap-8 items-center">
+                        <div class="w-full md:w-1/2 space-y-4">
+                            <div class="flex justify-between items-center text-sm">
+                                <span class="text-slate-500">Gross Salary</span>
+                                <span class="font-medium" id="dash-gross-salary">£0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm text-red-500">
+                                <span>Tax & NI (Est.)</span>
+                                <span id="dash-tax-ni">-£0</span>
+                            </div>
+                            <div class="flex justify-between items-center text-sm text-orange-500">
+                                <span id="dash-loan-label">Student Loan</span>
+                                <span id="dash-loan-deduction">-£0</span>
+                            </div>
+                            <div class="h-px w-full bg-slate-200"></div>
+                            <div class="flex justify-between items-center text-lg font-bold text-emerald-600">
+                                <span>Take Home Pay</span>
+                                <span id="dash-take-home">£0</span>
+                            </div>
+                        </div>
+
+                        <div class="w-full md:w-1/2 bg-slate-50 p-4 rounded-xl text-sm text-slate-600 flex items-start gap-3 border border-slate-200">
+                            <i data-lucide="info" class="w-6 h-6 text-blue-500 shrink-0"></i>
+                            <p>
+                                When applying for a mortgage, lenders will base your affordability on your <strong>Take Home Pay</strong>. 
+                                The student loan reduces your borrowing capacity slightly, but it does <strong>not</strong> negatively impact your credit score.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. SIMULATOR TAB -->
+            <div id="tab-simulator" class="tab-content animate-slide-in hidden space-y-6">
+                <header>
+                    <h2 class="text-3xl font-bold text-slate-800">The Raise Simulator</h2>
+                    <p class="text-slate-500">See exactly how much of your next pay rise you actually get to keep.</p>
+                </header>
+
+                <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100">
+                    <div class="mb-8">
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Simulate a Salary Increase (£)</label>
+                        <input type="range" id="sim-range" min="1000" max="20000" step="1000" value="5000" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" />
+                        <div class="mt-4 flex justify-between items-center">
+                            <span class="text-slate-500 text-sm" id="sim-base-text">Base: £32,000</span>
+                            <span class="text-2xl font-bold text-indigo-600" id="sim-raise-text">+ £5,000 Raise</span>
+                            <span class="text-slate-500 text-sm" id="sim-new-text">New: £37,000</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <h3 class="font-semibold text-slate-800" id="sim-where-goes">Where does the £5,000 go?</h3>
+                            
+                            <!-- Visual Breakdown Bar -->
+                            <div class="w-full h-8 rounded-full overflow-hidden flex bg-slate-100">
+                                <div id="sim-bar-takehome" class="bg-emerald-400 h-full" style="width: 50%"></div>
+                                <div id="sim-bar-tax" class="bg-red-400 h-full" style="width: 30%"></div>
+                                <div id="sim-bar-loan" class="bg-orange-400 h-full" style="width: 20%"></div>
+                            </div>
+
+                            <div class="space-y-2 text-sm">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-emerald-400"></div>
+                                    <span class="flex-1">Take Home Pay</span>
+                                    <span class="font-semibold" id="sim-val-takehome">£0</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                    <span class="flex-1">Tax & NI</span>
+                                    <span class="font-semibold text-slate-600" id="sim-val-tax">£0</span>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-3 h-3 rounded-full bg-orange-400"></div>
+                                    <span class="flex-1">Extra to Student Loan</span>
+                                    <span class="font-semibold text-slate-600" id="sim-val-loan">£0</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-indigo-50 border border-indigo-100 p-6 rounded-xl flex flex-col justify-center">
+                            <p class="text-sm text-indigo-800 font-medium mb-2">Your Effective Marginal Tax Rate</p>
+                            <p class="text-4xl font-bold text-indigo-600" id="sim-marginal-rate">0%</p>
+                            <p class="text-xs text-indigo-700 mt-2" id="sim-marginal-desc">
+                                For every extra £100 you earn, the government takes £0, and you only keep £100.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. PAYOFF ENGINE TAB -->
+            <div id="tab-payoff" class="tab-content animate-slide-in hidden space-y-6">
+                <header>
+                    <h2 class="text-3xl font-bold text-slate-800">The "Should I Overpay?" Engine</h2>
+                    <p class="text-slate-500">Should you make voluntary payments, or just let the loan expire?</p>
+                </header>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-6">
+                    <label class="block text-sm font-medium text-slate-700 mb-4">Select your expected career trajectory:</label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4" id="trajectory-buttons">
+                        <button data-traj="average" class="traj-btn p-4 rounded-xl border text-left transition-all border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50">
+                            <div class="font-semibold text-slate-800 capitalize mb-1">Average Earner</div>
+                            <div class="text-xs text-slate-500">Steady 3% annual salary increases.</div>
+                        </button>
+                        <button data-traj="high" class="traj-btn p-4 rounded-xl border text-left transition-all border-slate-200 hover:border-indigo-300">
+                            <div class="font-semibold text-slate-800 capitalize mb-1">High Earner</div>
+                            <div class="text-xs text-slate-500">Fast track 6% annual salary increases.</div>
+                        </button>
+                        <button data-traj="exceptional" class="traj-btn p-4 rounded-xl border text-left transition-all border-slate-200 hover:border-indigo-300">
+                            <div class="font-semibold text-slate-800 capitalize mb-1">Exceptional Earner</div>
+                            <div class="text-xs text-slate-500">Aggressive 10% annual salary increases.</div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-slate-900 text-white p-8 rounded-2xl shadow-sm">
+                        <h3 class="text-xl font-bold mb-6">Your Projection</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <p class="text-slate-400 text-sm" id="payoff-years-text">Estimated Total Repaid (over X years)</p>
+                                <p class="text-3xl font-bold text-emerald-400" id="payoff-total-repaid">£0</p>
+                            </div>
+                            
+                            <div id="payoff-forgiven-section">
+                                <p class="text-slate-400 text-sm">Amount forgiven at expiration</p>
+                                <p class="text-2xl font-bold text-purple-400" id="payoff-amount-forgiven">£0</p>
+                            </div>
+                            
+                            <div id="payoff-cleared-section" class="hidden bg-emerald-500/20 text-emerald-300 p-3 rounded-lg flex items-center gap-2 text-sm">
+                                <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                                You are projected to clear the loan before it expires.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="payoff-verdict-box" class="p-8 rounded-2xl shadow-sm border bg-orange-50 border-orange-200">
+                        <h3 class="text-xl font-bold mb-4 text-slate-800">The Verdict</h3>
+                        <div id="payoff-verdict-content">
+                            <!-- Injected by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. PRIORITY FLOW TAB -->
+            <div id="tab-priority" class="tab-content animate-slide-in hidden space-y-6">
+                <header>
+                    <h2 class="text-3xl font-bold text-slate-800">Financial Priority Flowchart</h2>
+                    <p class="text-slate-500">Find out exactly where your next spare £100 should go.</p>
+                </header>
+                <div id="priority-container">
+                    <!-- Content injected by JS -->
+                </div>
+            </div>
+
+        </div>
+    </div> <!-- End of Scrollable Area -->
+
+    <!-- MOBILE BOTTOM NAV -->
+    <div class="md:hidden absolute bottom-0 left-0 w-full bg-white border-t border-slate-200 flex justify-around z-20 shadow-[0_-4px_10px_rgba(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]">
+        <button data-target="dashboard" class="mobile-nav-btn w-1/4 flex flex-col items-center py-3 border-t-2 transition-colors text-emerald-600 bg-emerald-50 border-emerald-500">
+            <i data-lucide="wallet" class="w-5 h-5 mb-1"></i>
+            <span class="text-[10px] font-medium">Overview</span>
+        </button>
+        <button data-target="simulator" class="mobile-nav-btn w-1/4 flex flex-col items-center py-3 border-t-2 transition-colors text-slate-500 hover:text-slate-800 border-transparent">
+            <i data-lucide="calculator" class="w-5 h-5 mb-1"></i>
+            <span class="text-[10px] font-medium">Simulator</span>
+        </button>
+        <button data-target="payoff" class="mobile-nav-btn w-1/4 flex flex-col items-center py-3 border-t-2 transition-colors text-slate-500 hover:text-slate-800 border-transparent">
+            <i data-lucide="trending-up" class="w-5 h-5 mb-1"></i>
+            <span class="text-[10px] font-medium">Payoff</span>
+        </button>
+        <button data-target="priority" class="mobile-nav-btn w-1/4 flex flex-col items-center py-3 border-t-2 transition-colors text-slate-500 hover:text-slate-800 border-transparent">
+            <i data-lucide="shield-check" class="w-5 h-5 mb-1"></i>
+            <span class="text-[10px] font-medium">Action</span>
+        </button>
+    </div>
+
+</div> <!-- End of Content Wrapper -->
+
+<!-- PROFILE MODAL -->
+    <div id="profile-modal" class="hidden fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center animate-fade-in p-4">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-slate-800">Update Profile</h3>
+                <button onclick="closeProfileModal()" class="text-slate-400 hover:text-slate-600"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Salary (£)</label>
+                    <input type="number" id="input-salary" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Loan Balance (£)</label>
+                    <input type="number" id="input-balance" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Student Loan Plan</label>
+                    <select id="input-plan" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                        <option value="1">Plan 1</option>
+                        <option value="2">Plan 2</option>
+                        <option value="4">Plan 4 (Scotland)</option>
+                        <option value="5">Plan 5</option>
+                        <option value="PG">Postgraduate</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Year Started Uni</label>
+                        <input type="number" id="input-start-year" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Course Length (Yrs)</label>
+                        <input type="number" id="input-course-length" class="w-full border border-slate-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none">
+                    </div>
+                </div>
+            </div>
+            <button onclick="saveProfile()" class="w-full mt-6 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-xl transition-colors">
+                Save & Update
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN LOGIC -->
+    <script>
+        // --- MATH & CONSTANTS ---
+        const PLANS = {
+            '1': { threshold: 24990, rate: 0.09, term: 25, interest: 0.0625, name: 'Plan 1' },
+            '2': { threshold: 27295, rate: 0.09, term: 30, interest: 0.073, name: 'Plan 2' },
+            '4': { threshold: 31395, rate: 0.09, term: 30, interest: 0.0625, name: 'Plan 4' },
+            '5': { threshold: 25000, rate: 0.09, term: 40, interest: 0.043, name: 'Plan 5' },
+            'PG': { threshold: 21000, rate: 0.06, term: 30, interest: 0.073, name: 'Postgraduate' }
+        };
+        
+        // --- GLOBAL STATE ---
+        const state = {
+            activeTab: 'dashboard',
+            salary: 32000,
+            loanBalance: 45000,
+            plan: '2',
+            startYear: 2020,
+            courseLength: 3,
+            simRaise: 5000,
+            payoffTraj: 'average',
+            priorityStep: 0,
+            priorityVerdict: null
+        };
+
+        const prioritySteps = [
+            { 
+                id: 1, title: "Clear Toxic Debt", passAnswer: false,
+                desc: "Do you have credit card debt or an overdraft charging you high interest (e.g., 20%+)?",
+                action: "STOP. Pay this off immediately before worrying about Student Loans.",
+                icon: 'alert-circle', color: 'red'
+            },
+            { 
+                id: 2, title: "Secure Free Money", passAnswer: true,
+                desc: "Are you contributing enough to your workplace pension to get the maximum employer match?",
+                action: "STOP. Maximize your employer match. This is an instant 100% return on investment.",
+                icon: 'briefcase', color: 'blue'
+            },
+            { 
+                id: 3, title: "Build the Shield", passAnswer: true,
+                desc: "Do you have 3 to 6 months of living expenses saved in an easily accessible cash savings account?",
+                action: "STOP. Build your emergency fund. Student loans don't care if you lose your job, but your landlord does.",
+                icon: 'shield-check', color: 'purple'
+            },
+            { 
+                id: 4, title: "The Student Loan Check", passAnswer: true,
+                desc: "Have you checked the 'Payoff Engine' tab to see if your loan will naturally clear before it expires?",
+                action: "Only if you are a high-earner projected to clear the loan naturally should you start overpaying it.",
+                icon: 'piggy-bank', color: 'emerald'
+            }
+        ];
+
+        // --- MATH UTILS ---
+        function calculateMonthlyStudentLoan(salary, plan) {
+            const planDetails = PLANS[plan];
+            if (salary <= planDetails.threshold) return 0;
+            return ((salary - planDetails.threshold) * planDetails.rate) / 12;
+        }
+
+        function calculateBasicTakeHome(salary) {
+            const personalAllowance = 12570;
+            let tax = 0;
+            let ni = 0;
+            if (salary > personalAllowance) {
+                tax = (salary - personalAllowance) * 0.20;
+                ni = (salary - personalAllowance) * 0.08;
+            }
+            return (salary - tax - ni) / 12;
+        }
+
+        function formatCurrency(num) {
+            return '£' + Math.round(num).toLocaleString('en-GB');
+        }
+
+        // --- CORE UPDATE FUNCTIONS ---
+        function updateApp() {
+            // Derived global states
+            const planDetails = PLANS[state.plan];
+            const currentYear = new Date().getFullYear();
+            const repaymentStartYear = state.startYear + state.courseLength + 1; // April after graduation
+            const yearsSinceRepaymentStart = Math.max(0, currentYear - repaymentStartYear);
+            const yearsToForgiveness = Math.max(0, planDetails.term - yearsSinceRepaymentStart);
+
+            const monthlyLoanPayment = calculateMonthlyStudentLoan(state.salary, state.plan);
+            const basicMonthly = calculateBasicTakeHome(state.salary);
+            const monthlyTakeHome = basicMonthly - monthlyLoanPayment;
+
+            // 1. Update Sidebar
+            document.getElementById('sidebar-salary').textContent = formatCurrency(state.salary);
+            document.getElementById('sidebar-balance').textContent = formatCurrency(state.loanBalance);
+            document.getElementById('sidebar-plan').textContent = planDetails.name;
+
+            // 2. Update Dashboard
+            document.getElementById('dash-total-balance').textContent = formatCurrency(state.loanBalance);
+            document.getElementById('dash-monthly-payment').textContent = formatCurrency(monthlyLoanPayment);
+            document.getElementById('dash-threshold').textContent = formatCurrency(planDetails.threshold);
+            document.getElementById('dash-plan-rate').textContent = `${(planDetails.rate * 100).toFixed(0)}%`;
+            document.getElementById('dash-years-left').textContent = yearsToForgiveness;
+            document.getElementById('dash-progress-bar').style.width = `${((planDetails.term - yearsToForgiveness) / planDetails.term) * 100}%`;
+            
+            document.getElementById('dash-gross-salary').textContent = formatCurrency(state.salary / 12);
+            document.getElementById('dash-tax-ni').textContent = '-' + formatCurrency((state.salary / 12) - basicMonthly);
+            document.getElementById('dash-loan-label').textContent = `Student Loan (${planDetails.name})`;
+            document.getElementById('dash-loan-deduction').textContent = '-' + formatCurrency(monthlyLoanPayment);
+            document.getElementById('dash-take-home').textContent = formatCurrency(monthlyTakeHome);
+
+            // 3. Update Simulator
+            const raiseAmount = state.simRaise;
+            const newSalary = state.salary + raiseAmount;
+            const currentLoanPayment = calculateMonthlyStudentLoan(state.salary, state.plan) * 12;
+            const newLoanPayment = calculateMonthlyStudentLoan(newSalary, state.plan) * 12;
+            const loanIncrease = newLoanPayment - currentLoanPayment;
+
+            const taxRate = newSalary > 50270 ? 0.40 : 0.20; 
+            const niRate = newSalary > 50270 ? 0.02 : 0.08;
+            const studentLoanRate = planDetails.rate;
+            
+            const marginalRate = (taxRate + niRate + studentLoanRate) * 100;
+            const takeHomeFromRaise = raiseAmount * (1 - (marginalRate / 100));
+            const taxNiIncrease = (taxRate + niRate) * raiseAmount;
+
+            document.getElementById('sim-base-text').textContent = `Base: ${formatCurrency(state.salary)}`;
+            document.getElementById('sim-raise-text').textContent = `+ ${formatCurrency(raiseAmount)} Raise`;
+            document.getElementById('sim-new-text').textContent = `New: ${formatCurrency(newSalary)}`;
+            document.getElementById('sim-where-goes').textContent = `Where does the ${formatCurrency(raiseAmount)} go?`;
+            
+            document.getElementById('sim-val-takehome').textContent = formatCurrency(takeHomeFromRaise);
+            document.getElementById('sim-val-tax').textContent = formatCurrency(taxNiIncrease);
+            document.getElementById('sim-val-loan').textContent = formatCurrency(loanIncrease);
+
+            document.getElementById('sim-bar-takehome').style.width = `${(takeHomeFromRaise / raiseAmount) * 100}%`;
+            document.getElementById('sim-bar-tax').style.width = `${(taxNiIncrease / raiseAmount) * 100}%`;
+            document.getElementById('sim-bar-loan').style.width = `${(loanIncrease / raiseAmount) * 100}%`;
+
+            document.getElementById('sim-marginal-rate').textContent = `${Math.round(marginalRate)}%`;
+            document.getElementById('sim-marginal-desc').textContent = `For every extra £100 you earn, the government takes £${Math.round(marginalRate)}, and you only keep £${Math.round(100 - marginalRate)}.`;
+
+            // 4. Update Payoff Engine
+            runPayoffSimulation(yearsToForgiveness);
+
+            // 5. Update Priority Flow
+            renderPriorityFlow();
+            
+            // Re-initialize any new lucide icons injected
+            lucide.createIcons();
+        }
+
+        function runPayoffSimulation(yearsToForgiveness) {
+            const trajectories = {
+                average: 0.03, high: 0.06, exceptional: 0.10
+            };
+            const growth = trajectories[state.payoffTraj];
+            const planDetails = PLANS[state.plan];
+            
+            let currentSalary = state.salary;
+            let totalPaid = 0;
+            let currentBalance = state.loanBalance;
+            const interestRate = planDetails.interest; 
+            let yearsItTook = 0;
+            let wipedOut = false;
+
+            for (let i = 0; i < yearsToForgiveness; i++) {
+                if (currentBalance <= 0) {
+                    wipedOut = true;
+                    break;
+                }
+                const yearlyPayment = calculateMonthlyStudentLoan(currentSalary, state.plan) * 12;
+                totalPaid += yearlyPayment;
+                currentBalance = (currentBalance * (1 + interestRate)) - yearlyPayment;
+                currentSalary = currentSalary * (1 + growth);
+                yearsItTook++;
+            }
+
+            document.getElementById('payoff-years-text').textContent = `Estimated Total Repaid (over ${yearsItTook} years)`;
+            document.getElementById('payoff-total-repaid').textContent = formatCurrency(totalPaid);
+            
+            const forgivenSection = document.getElementById('payoff-forgiven-section');
+            const clearedSection = document.getElementById('payoff-cleared-section');
+            const verdictBox = document.getElementById('payoff-verdict-box');
+            const verdictContent = document.getElementById('payoff-verdict-content');
+
+            if (wipedOut) {
+                forgivenSection.classList.add('hidden');
+                clearedSection.classList.remove('hidden');
+                verdictBox.className = 'p-8 rounded-2xl shadow-sm border bg-emerald-50 border-emerald-200';
+                verdictContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-orange-100 text-orange-700 rounded-full text-sm font-semibold">
+                            <i data-lucide="alert-circle" class="w-4 h-4"></i> CONSIDER OVERPAYING
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed">
+                            Because your salary is growing fast, you are projected to clear the loan before it expires. This means the high interest rate is actually costing you real money.
+                        </p>
+                        <p class="text-slate-700 text-sm font-semibold">
+                            Action: Once you have cleared other high-interest debts and built an emergency fund, overpaying this loan could save you thousands in interest.
+                        </p>
+                    </div>
+                `;
+            } else {
+                forgivenSection.classList.remove('hidden');
+                clearedSection.classList.add('hidden');
+                document.getElementById('payoff-amount-forgiven').textContent = formatCurrency(Math.max(0, currentBalance));
+                verdictBox.className = 'p-8 rounded-2xl shadow-sm border bg-orange-50 border-orange-200';
+                verdictContent.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-2 px-3 py-1 bg-emerald-100 text-emerald-700 rounded-full text-sm font-semibold">
+                            <i data-lucide="x-circle" class="w-4 h-4"></i> DO NOT OVERPAY
+                        </div>
+                        <p class="text-slate-700 text-sm leading-relaxed">
+                            Based on your trajectory, you will never pay off the full balance before it is wiped out by the government. 
+                            Any extra voluntary payments you make now are essentially throwing money into a black hole. 
+                        </p>
+                        <p class="text-slate-700 text-sm font-semibold">
+                            Action: Pay the statutory minimum and focus your spare cash on investments or housing.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPriorityFlow() {
+            const container = document.getElementById('priority-container');
+            
+            if (state.priorityVerdict === null) {
+                const step = prioritySteps[state.priorityStep];
+                
+                let dotsHtml = '';
+                for(let i=0; i<prioritySteps.length; i++) {
+                    const bg = i === state.priorityStep ? 'bg-indigo-600' : (i < state.priorityStep ? 'bg-emerald-400' : 'bg-slate-200');
+                    dotsHtml += `<div class="w-2 h-2 rounded-full ${bg}"></div>`;
+                }
+
+                container.innerHTML = `
+                    <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center max-w-2xl mx-auto mt-8">
+                        <div class="flex justify-center mb-6">
+                            <div class="p-4 bg-slate-50 rounded-full border border-slate-100 text-${step.color}-500">
+                                <i data-lucide="${step.icon}" class="w-8 h-8"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-xl font-bold text-slate-800 mb-2">Step ${step.id}: ${step.title}</h3>
+                        <p class="text-slate-600 mb-8 h-12">${step.desc}</p>
+                        
+                        <div class="flex justify-center gap-4">
+                            <button onclick="handlePriorityAnswer(false)" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl transition-colors shadow-sm">
+                                No, I haven't
+                            </button>
+                            <button onclick="handlePriorityAnswer(true)" class="px-6 py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold rounded-xl transition-colors shadow-sm">
+                                Yes, I have
+                            </button>
+                        </div>
+                        
+                        <div class="flex justify-center gap-2 mt-8">${dotsHtml}</div>
+                    </div>
+                `;
+            } else {
+                if (state.priorityVerdict === 'success') {
+                    container.innerHTML = `
+                        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center max-w-2xl mx-auto mt-8 animate-zoom-in">
+                            <div class="flex justify-center mb-6">
+                                <div class="p-4 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-500">
+                                    <i data-lucide="check-circle-2" class="w-8 h-8"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800 mb-4">You are in incredible shape!</h3>
+                            <p class="text-slate-600 mb-6">
+                                You have cleared toxic debt, secured your employer match, and built an emergency fund. 
+                                You can now confidently look at investing your money, saving for a house, or making voluntary student loan payments if the 'Payoff Engine' recommended it.
+                            </p>
+                            <button onclick="resetPriority()" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm underline underline-offset-4">
+                                Restart Checklist
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    const step = prioritySteps[state.priorityVerdict];
+                    container.innerHTML = `
+                        <div class="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 text-center max-w-2xl mx-auto mt-8 animate-zoom-in">
+                            <div class="flex justify-center mb-6">
+                                <div class="p-4 bg-orange-50 rounded-full border border-orange-100 text-orange-500">
+                                    <i data-lucide="alert-circle" class="w-8 h-8"></i>
+                                </div>
+                            </div>
+                            <h3 class="text-2xl font-bold text-slate-800 mb-4">Your Next Priority</h3>
+                            <p class="text-lg text-slate-600 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                ${step.action}
+                            </p>
+                            <button onclick="resetPriority()" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm underline underline-offset-4">
+                                Restart Checklist
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
+        // --- EVENT HANDLERS ---
+        
+        // Navigation
+        document.querySelectorAll('.desktop-nav-btn, .mobile-nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.currentTarget.getAttribute('data-target');
+                state.activeTab = target;
+                
+                // Update Desktop Buttons
+                document.querySelectorAll('.desktop-nav-btn').forEach(b => {
+                    const isActive = b.getAttribute('data-target') === target;
+                    b.className = `desktop-nav-btn w-full flex items-center gap-3 px-6 py-3 text-sm font-medium transition-colors border-l-4 ${isActive ? 'bg-slate-800 text-white border-emerald-400' : 'border-transparent hover:bg-slate-800 hover:text-white'}`;
+                });
+
+                // Update Mobile Buttons
+                document.querySelectorAll('.mobile-nav-btn').forEach(b => {
+                    const isActive = b.getAttribute('data-target') === target;
+                    b.className = `mobile-nav-btn w-1/4 flex flex-col items-center py-3 border-t-2 transition-colors ${isActive ? 'text-emerald-600 bg-emerald-50 border-emerald-500' : 'text-slate-500 hover:text-slate-800 border-transparent'}`;
+                });
+                
+                // Toggle Content Tabs
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.add('hidden');
+                    tab.classList.remove('block');
+                });
+                document.getElementById(`tab-${target}`).classList.remove('hidden');
+                document.getElementById(`tab-${target}`).classList.add('block');
+            });
+        });
+
+        // Update Profile Modal Functions
+        function updateProfile() {
+            document.getElementById('input-salary').value = state.salary;
+            document.getElementById('input-balance').value = state.loanBalance;
+            document.getElementById('input-plan').value = state.plan;
+            document.getElementById('input-start-year').value = state.startYear;
+            document.getElementById('input-course-length').value = state.courseLength;
+            document.getElementById('profile-modal').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('profile-modal').classList.add('hidden');
+        }
+
+        function saveProfile() {
+            state.salary = Number(document.getElementById('input-salary').value);
+            state.loanBalance = Number(document.getElementById('input-balance').value);
+            state.plan = document.getElementById('input-plan').value;
+            state.startYear = Number(document.getElementById('input-start-year').value);
+            state.courseLength = Number(document.getElementById('input-course-length').value);
+            closeProfileModal();
+            updateApp();
+        }
+
+        // Simulator Range
+        document.getElementById('sim-range').addEventListener('input', (e) => {
+            state.simRaise = Number(e.target.value);
+            updateApp();
+        });
+
+        // Trajectory Buttons
+        document.querySelectorAll('.traj-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const traj = e.currentTarget.getAttribute('data-traj');
+                state.payoffTraj = traj;
+                
+                // Style updates
+                document.querySelectorAll('.traj-btn').forEach(b => {
+                    b.className = 'traj-btn p-4 rounded-xl border text-left transition-all border-slate-200 hover:border-indigo-300';
+                });
+                e.currentTarget.className = 'traj-btn p-4 rounded-xl border text-left transition-all border-indigo-600 ring-2 ring-indigo-600/20 bg-indigo-50';
+                
+                updateApp();
+            });
+        });
+
+        // Priority Flow Handlers
+        window.handlePriorityAnswer = function(answer) {
+            const step = prioritySteps[state.priorityStep];
+            if (answer !== step.passAnswer) {
+                state.priorityVerdict = state.priorityStep; // fail path
+            } else {
+                if (state.priorityStep < prioritySteps.length - 1) {
+                    state.priorityStep++;
+                } else {
+                    state.priorityVerdict = 'success';
+                }
+            }
+            updateApp();
+        };
+
+        window.resetPriority = function() {
+            state.priorityStep = 0;
+            state.priorityVerdict = null;
+            updateApp();
+        };
+
+        // Initialize Icons and App
+        lucide.createIcons();
+        updateApp();
+
+    </script>
+</body>
+</html>
